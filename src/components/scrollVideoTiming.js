@@ -44,6 +44,12 @@ export function getFrameLoadOrder(frameCount) {
   return order
 }
 
+export function getInitialReadyFrameCount(frameCount) {
+  const count = Math.max(0, Math.floor(frameCount))
+
+  return Math.min(count, 9)
+}
+
 export function getRenderableFrame({
   currentFrame,
   frames,

@@ -6,13 +6,17 @@ import {
   getFrameIndex,
   getFrameLoadOrder,
   getFrameUrl,
+  getInitialReadyFrameCount,
   getRenderableFrame,
   getSampleTime,
   getScrollProgress,
 } from './scrollVideoTiming.js'
+import DecryptingText from './DecryptingText'
 import GooeyNav from './GooeyNav'
 import Lanyard from './Lanyard'
 import TextType from './TextType'
+
+const minimumLoadingDisplayMs = 680
 
 const defaultContactCard = {
   name: 'Chen Linliang',
@@ -43,6 +47,10 @@ function waitForEvent(target, successEvent, failureEvent = 'error') {
     target.addEventListener(successEvent, onSuccess, { once: true })
     target.addEventListener(failureEvent, onFailure, { once: true })
   })
+}
+
+function getLoadClock() {
+  return typeof performance === 'undefined' ? Date.now() : performance.now()
 }
 
 async function imageFromBlob(blob) {
@@ -135,6 +143,7 @@ async function decodeVideoFrames({
       height,
       index,
       frameCount,
+      ready: index + 1 >= getInitialReadyFrameCount(frameCount),
       width,
     })
     onProgress((index + 1) / frameCount)
@@ -154,6 +163,7 @@ async function decodeVideoFrames({
 async function preloadFrameSequence({ frameSequence, onFrame, onProgress, isCancelled }) {
   const frames = Array.from({ length: frameSequence.frameCount }, () => null)
   const loadOrder = getFrameLoadOrder(frameSequence.frameCount)
+  const readyFrameCount = getInitialReadyFrameCount(frameSequence.frameCount)
 
   for (let loadIndex = 0; loadIndex < loadOrder.length; loadIndex += 1) {
     if (isCancelled()) break
@@ -175,6 +185,7 @@ async function preloadFrameSequence({ frameSequence, onFrame, onProgress, isCanc
       height: image.naturalHeight || 1,
       index,
       frameCount: frameSequence.frameCount,
+      ready: loadIndex + 1 >= readyFrameCount,
       width: image.naturalWidth || 1,
     })
     onProgress((loadIndex + 1) / loadOrder.length)
@@ -266,12 +277,14 @@ export default function ScrollVideo({
   const identityRef = useRef(null)
   const textRefs = useRef([])
   const frameRef = useRef(null)
+  const loadingStartedAtRef = useRef(getLoadClock())
   const renderedFrameRef = useRef({ frame: null, targetIndex: null })
   const scrollProgressRef = useRef(0)
   const sequenceRef = useRef({ duration: 10, frames: [] })
   const [duration, setDuration] = useState(10)
   const [loadProgress, setLoadProgress] = useState(0)
   const [ready, setReady] = useState(false)
+  const [loadingVisible, setLoadingVisible] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [scrollProgress, setScrollProgress] = useState(0)
   const [lanyardExpanded, setLanyardExpanded] = useState(false)
@@ -281,7 +294,9 @@ export default function ScrollVideo({
     const urls = []
 
     const loadFrames = async () => {
+      loadingStartedAtRef.current = getLoadClock()
       setReady(false)
+      setLoadingVisible(true)
       setLoadError('')
       setLoadProgress(0)
       sequenceRef.current = { duration: 10, frames: [] }
@@ -292,6 +307,7 @@ export default function ScrollVideo({
         const {
           frameCount,
           index,
+          ready: isReady,
           ...sequenceMetadata
         } = metadata
         const hasFrameSlot = Number.isInteger(index) && Number.isInteger(frameCount) && frameCount > 0
@@ -309,7 +325,9 @@ export default function ScrollVideo({
           ...sequenceMetadata,
           frames,
         }
-        setReady(true)
+        if (isReady) {
+          setReady(true)
+        }
       }
 
       try {
@@ -355,6 +373,21 @@ export default function ScrollVideo({
       urls.forEach((url) => URL.revokeObjectURL(url))
     }
   }, [decodeFps, endTime, frameManifest, frameQuality, frameSequence, maxFrameWidth, startTime, videoSrc])
+
+  useEffect(() => {
+    if (!ready) {
+      setLoadingVisible(true)
+      return undefined
+    }
+
+    const elapsed = getLoadClock() - loadingStartedAtRef.current
+    const remaining = Math.max(0, minimumLoadingDisplayMs - elapsed)
+    const timeoutId = window.setTimeout(() => {
+      setLoadingVisible(false)
+    }, remaining)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [ready])
 
   useEffect(() => {
     const fallbackVideo = fallbackVideoRef.current
@@ -601,9 +634,35 @@ export default function ScrollVideo({
           )}
         </div>
 
-        {!ready && (
-          <p className="scroll-video__loading">
-            {loadError || `Preparing scroll frames ${progressPercent}%`}
+        {loadingVisible && (
+          <p
+            className={`scroll-video__loading${ready ? ' scroll-video__loading--exiting' : ''}`}
+            role="status"
+            aria-live="polite"
+          >
+            <span className="scroll-video__loading-kicker">C11 Rides</span>
+            {loadError ? (
+              <span className="scroll-video__loading-title">{loadError}</span>
+            ) : (
+              <DecryptingText
+                className="scroll-video__loading-title"
+                encryptedClassName="scroll-video__loading-glyph"
+                revealDirection="center"
+                speed={36}
+                text="SYNCING RIDE FRAMES"
+              />
+            )}
+            {!loadError && (
+              <>
+                <span className="scroll-video__loading-meter" aria-hidden="true">
+                  <span
+                    className="scroll-video__loading-progress"
+                    style={{ '--load-progress': loadProgress }}
+                  />
+                </span>
+                <span className="scroll-video__loading-percent">{progressPercent}%</span>
+              </>
+            )}
           </p>
         )}
 

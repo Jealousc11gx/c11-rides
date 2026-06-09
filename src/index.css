@@ -341,8 +341,98 @@ body {
 }
 
 .scroll-video__loading {
+  display: grid;
+  gap: 0.48rem;
+  justify-items: start;
+  width: min(17rem, calc(100vw - 3rem));
   color: var(--text-soft);
-  transform: translate(-50%, -50%);
+  font-family: var(--font-mono);
+  opacity: 1;
+  text-align: left;
+  transform: translate(-50%, -50%) translateZ(0);
+  transition:
+    opacity 240ms ease,
+    transform 240ms ease;
+  will-change: opacity, transform;
+}
+
+.scroll-video__loading--exiting {
+  opacity: 0;
+  transform: translate(-50%, calc(-50% - 0.42rem)) translateZ(0);
+}
+
+.scroll-video__loading-kicker {
+  color: var(--text-main);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.scroll-video__loading-title {
+  color: var(--text-soft);
+  font-size: 0.76rem;
+  letter-spacing: 0.03em;
+}
+
+.decrypting-text__visual {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.02em;
+}
+
+.decrypting-text__char {
+  display: inline-block;
+  min-width: 0.58ch;
+}
+
+.scroll-video__loading-glyph {
+  color: rgba(255, 255, 255, 0.38);
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.18);
+}
+
+.scroll-video__loading-meter {
+  position: relative;
+  width: 100%;
+  height: 2px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.scroll-video__loading-meter::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 38%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
+  transform: translateX(-120%);
+}
+
+.scroll-video__loading-progress {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--text-main);
+  transform: scaleX(var(--load-progress, 0));
+  transform-origin: left center;
+  transition: transform 180ms ease-out;
+}
+
+.scroll-video__loading-percent {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .scroll-video__loading-meter::after {
+    animation: loading-meter-sweep 1.35s ease-in-out infinite;
+  }
+
+  .scroll-video__loading-glyph {
+    animation: loading-glyph-pulse 240ms steps(2, end) infinite;
+  }
 }
 
 .scroll-video__text {
@@ -1029,6 +1119,27 @@ body {
   }
 }
 
+@keyframes loading-meter-sweep {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+@keyframes loading-glyph-pulse {
+  0%,
+  100% {
+    opacity: 0.62;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
 @keyframes lanyard-drop {
   0% {
     opacity: 0;
@@ -1164,6 +1275,11 @@ body {
   .gooey-nav__text.is-active,
   .scroll-video__identity-name-char,
   .scroll-video__quote--animated::after,
+  .scroll-video__loading,
+  .scroll-video__loading-glyph,
+  .scroll-video__loading-meter::after,
+  .scroll-video__loading-progress,
+  .decrypting-text__char,
   .lanyard__stage,
   .scroll-video__scroll-cue-arrow,
   .split-text__unit {

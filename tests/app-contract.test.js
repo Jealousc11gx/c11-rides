@@ -15,6 +15,9 @@ const starBorderCssSource = existsSync(new URL('../src/components/StarBorder.css
   ? await readFile(new URL('../src/components/StarBorder.css', import.meta.url), 'utf8')
   : ''
 const textTypeSource = await readFile(new URL('../src/components/TextType.jsx', import.meta.url), 'utf8')
+const decryptingTextSource = existsSync(new URL('../src/components/DecryptingText.jsx', import.meta.url))
+  ? await readFile(new URL('../src/components/DecryptingText.jsx', import.meta.url), 'utf8')
+  : ''
 const lanyardSource = existsSync(new URL('../src/components/Lanyard.jsx', import.meta.url))
   ? await readFile(new URL('../src/components/Lanyard.jsx', import.meta.url), 'utf8')
   : ''
@@ -25,10 +28,12 @@ const cssSource = await readFile(new URL('../src/index.css', import.meta.url), '
 const extractScriptSource = await readFile(new URL('../scripts/extract-frames.swift', import.meta.url), 'utf8')
 const extract2k60ScriptSource = await readFile(new URL('../scripts/extract-frames-2k60.py', import.meta.url), 'utf8')
 const contentUrl = new URL('../src/content.json', import.meta.url)
+const productionFrameManifestUrl = new URL('../public/frames/web_vedio/manifest.json', import.meta.url)
 const contentSource = existsSync(contentUrl)
   ? await readFile(contentUrl, 'utf8')
   : '{}'
 const contentJson = JSON.parse(contentSource)
+const productionFrameManifest = JSON.parse(await readFile(productionFrameManifestUrl, 'utf8'))
 const packageJson = JSON.parse(packageSource)
 
 function cssRule(selector) {
@@ -44,6 +49,9 @@ function requireContentPath(path) {
 
 test('App wires the production WebP frame manifest before video decode fallback', () => {
   assert.match(appSource, /frameManifest=["']\/frames\/web_vedio\/manifest\.json["']/)
+  assert.equal(productionFrameManifest.basePath, '/frames/web_vedio')
+  assert.equal(productionFrameManifest.fps, 45)
+  assert.equal(productionFrameManifest.frameCount, 436)
   assert.equal(
     getFrameUrl({
       basePath: '/frames/web_vedio',
@@ -87,6 +95,15 @@ test('editable content json is wired as the single source for page copy', () => 
 
 test('scroll video overlay styles cover HUD, SplitText, and quote states', () => {
   for (const selector of [
+    '.scroll-video__loading',
+    '.scroll-video__loading--exiting',
+    '.scroll-video__loading-kicker',
+    '.scroll-video__loading-title',
+    '.scroll-video__loading-glyph',
+    '.scroll-video__loading-meter',
+    '.scroll-video__loading-progress',
+    '.decrypting-text__visual',
+    '.decrypting-text__char',
     '.scroll-video__identity',
     '.scroll-video__identity-lockup',
     '.scroll-video__identity-name-char',
@@ -106,6 +123,19 @@ test('scroll video overlay styles cover HUD, SplitText, and quote states', () =>
 
   assert.doesNotMatch(cssSource, /\.scroll-video__quote \.text-type/)
   assert.doesNotMatch(cssSource, /\.scroll-video__scanline/)
+})
+
+test('Scroll loading uses native decrypting text without adding Motion', () => {
+  assert.match(scrollVideoSource, /import DecryptingText from ['"]\.\/DecryptingText['"]/)
+  assert.match(scrollVideoSource, /minimumLoadingDisplayMs/)
+  assert.match(scrollVideoSource, /loadingVisible/)
+  assert.match(scrollVideoSource, /<DecryptingText[\s\S]*text="SYNCING RIDE FRAMES"/)
+  assert.match(scrollVideoSource, /className="scroll-video__loading-title"/)
+  assert.match(scrollVideoSource, /encryptedClassName="scroll-video__loading-glyph"/)
+  assert.match(decryptingTextSource, /getDecryptingTextFrame/)
+  assert.match(decryptingTextSource, /prefers-reduced-motion: reduce/)
+  assert.doesNotMatch(packageSource, /motion\/react|framer-motion/)
+  assert.doesNotMatch(decryptingTextSource, /motion\/react|framer-motion/)
 })
 
 test('App uses animated final quote and StarBorder for every final profile link', () => {

@@ -6,6 +6,7 @@ import {
   getCueState,
   getFrameIndex,
   getFrameLoadOrder,
+  getInitialReadyFrameCount,
   getFrameUrl,
   getRenderableFrame,
   getSampleTime,
@@ -90,6 +91,12 @@ test('loads timeline keyframes before filling every sequential frame', () => {
   ])
   assert.equal(new Set(order).size, 581)
   assert.equal(order.length, 581)
+})
+
+test('waits for timeline keyframes before marking the sequence ready', () => {
+  assert.equal(getInitialReadyFrameCount(436), 9)
+  assert.equal(getInitialReadyFrameCount(4), 4)
+  assert.equal(getInitialReadyFrameCount(0), 0)
 })
 
 test('keeps manifest frame slots stable while frames are still loading', () => {
