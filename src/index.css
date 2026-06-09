@@ -419,12 +419,6 @@ body {
   transition: transform 180ms ease-out;
 }
 
-.scroll-video__loading-percent {
-  color: var(--text-muted);
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
-}
-
 @media (prefers-reduced-motion: no-preference) {
   .scroll-video__loading-meter::after {
     animation: loading-meter-sweep 1.35s ease-in-out infinite;

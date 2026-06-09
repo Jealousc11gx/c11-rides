@@ -60,6 +60,14 @@ export function isFrameLoadingComplete({
   return total > 0 && loaded >= total
 }
 
+export function isFrameSequenceInteractive({
+  loadProgress,
+  ready,
+  minimumProgress = 0.5,
+}) {
+  return Boolean(ready) && clamp(loadProgress, 0, 1) >= clamp(minimumProgress, 0, 1)
+}
+
 export function getLoadingExitTiming({
   elapsedMs,
   fadeMs,

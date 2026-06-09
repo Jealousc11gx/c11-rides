@@ -12,6 +12,7 @@ import {
   getSampleTime,
   getScrollProgress,
   isFrameLoadingComplete,
+  isFrameSequenceInteractive,
 } from './scrollVideoTiming.js'
 import DecryptingText from './DecryptingText'
 import GooeyNav from './GooeyNav'
@@ -408,8 +409,13 @@ export default function ScrollVideo({
     }
   }, [decodeFps, endTime, frameManifest, frameQuality, frameSequence, maxFrameWidth, startTime, videoSrc])
 
+  const interactiveReady = isFrameSequenceInteractive({
+    loadProgress,
+    ready,
+  })
+
   useEffect(() => {
-    if (!loadingComplete) {
+    if (!interactiveReady) {
       setLoadingExiting(false)
       setLoadingVisible(true)
       return undefined
@@ -432,7 +438,7 @@ export default function ScrollVideo({
       window.clearTimeout(exitTimeoutId)
       window.clearTimeout(hideTimeoutId)
     }
-  }, [loadingComplete])
+  }, [interactiveReady])
 
   useEffect(() => {
     const fallbackVideo = fallbackVideoRef.current
@@ -546,7 +552,6 @@ export default function ScrollVideo({
 
   const dist = scrollDist || `${Math.max(300, duration * 90)}vh`
   const displayIdentity = identity || brand
-  const progressPercent = Math.round(loadProgress * 100)
   const scrollToCue = (event, item) => {
     const targetCue = item.cueId
       ? texts.find((text) => text.id === item.cueId)
@@ -705,7 +710,6 @@ export default function ScrollVideo({
                     style={{ '--load-progress': loadProgress }}
                   />
                 </span>
-                <span className="scroll-video__loading-percent">{progressPercent}%</span>
               </>
             )}
           </p>

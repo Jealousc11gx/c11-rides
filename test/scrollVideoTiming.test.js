@@ -8,6 +8,7 @@ import {
   getFrameLoadOrder,
   getInitialReadyFrameCount,
   getFrameUrl,
+  isFrameSequenceInteractive,
   isFrameLoadingComplete,
   getLoadingExitTiming,
   getRenderableFrame,
@@ -115,6 +116,30 @@ test('only treats frame loading as complete after every manifest frame is ready'
       loadedFrameCount: 291,
     }),
     true,
+  )
+})
+
+test('treats frame sequence as interactive once ready frames reach the loading threshold', () => {
+  assert.equal(
+    isFrameSequenceInteractive({
+      loadProgress: 0.49,
+      ready: true,
+    }),
+    false,
+  )
+  assert.equal(
+    isFrameSequenceInteractive({
+      loadProgress: 0.5,
+      ready: true,
+    }),
+    true,
+  )
+  assert.equal(
+    isFrameSequenceInteractive({
+      loadProgress: 1,
+      ready: false,
+    }),
+    false,
   )
 })
 
