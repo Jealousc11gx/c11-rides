@@ -50,6 +50,32 @@ export function getInitialReadyFrameCount(frameCount) {
   return Math.min(count, 9)
 }
 
+export function isFrameLoadingComplete({
+  frameCount,
+  loadedFrameCount,
+}) {
+  const total = Math.max(0, Math.floor(frameCount))
+  const loaded = Math.max(0, Math.floor(loadedFrameCount))
+
+  return total > 0 && loaded >= total
+}
+
+export function getLoadingExitTiming({
+  elapsedMs,
+  fadeMs,
+  minimumDisplayMs,
+}) {
+  const elapsed = Math.max(0, Math.floor(elapsedMs))
+  const fade = Math.max(0, Math.floor(fadeMs))
+  const minimum = Math.max(0, Math.floor(minimumDisplayMs))
+  const exitDelayMs = Math.max(0, minimum - elapsed)
+
+  return {
+    exitDelayMs,
+    hideDelayMs: exitDelayMs + fade,
+  }
+}
+
 export function getRenderableFrame({
   currentFrame,
   frames,

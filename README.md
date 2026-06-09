@@ -60,7 +60,7 @@ Output Directory: dist
 public/frames/web_vedio
 ```
 
-该目录是生产页面需要的静态资源，需要提交。`public/frames_compare` 是本地帧率对比资源，不参与部署。
+该目录是生产页面需要的 30fps WebP 帧序列，需要提交。`public/frames_compare` 是本地帧率对比资源，不参与部署。
 
 ## Content
 

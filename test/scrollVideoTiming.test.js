@@ -8,6 +8,8 @@ import {
   getFrameLoadOrder,
   getInitialReadyFrameCount,
   getFrameUrl,
+  isFrameLoadingComplete,
+  getLoadingExitTiming,
   getRenderableFrame,
   getSampleTime,
   getScrollProgress,
@@ -94,9 +96,52 @@ test('loads timeline keyframes before filling every sequential frame', () => {
 })
 
 test('waits for timeline keyframes before marking the sequence ready', () => {
-  assert.equal(getInitialReadyFrameCount(436), 9)
+  assert.equal(getInitialReadyFrameCount(291), 9)
   assert.equal(getInitialReadyFrameCount(4), 4)
   assert.equal(getInitialReadyFrameCount(0), 0)
+})
+
+test('only treats frame loading as complete after every manifest frame is ready', () => {
+  assert.equal(
+    isFrameLoadingComplete({
+      frameCount: 291,
+      loadedFrameCount: 9,
+    }),
+    false,
+  )
+  assert.equal(
+    isFrameLoadingComplete({
+      frameCount: 291,
+      loadedFrameCount: 291,
+    }),
+    true,
+  )
+})
+
+test('keeps the loading boot copy fully visible before fading out', () => {
+  assert.deepEqual(
+    getLoadingExitTiming({
+      elapsedMs: 260,
+      fadeMs: 240,
+      minimumDisplayMs: 1200,
+    }),
+    {
+      exitDelayMs: 940,
+      hideDelayMs: 1180,
+    },
+  )
+
+  assert.deepEqual(
+    getLoadingExitTiming({
+      elapsedMs: 1400,
+      fadeMs: 240,
+      minimumDisplayMs: 1200,
+    }),
+    {
+      exitDelayMs: 0,
+      hideDelayMs: 240,
+    },
+  )
 })
 
 test('keeps manifest frame slots stable while frames are still loading', () => {

@@ -50,8 +50,8 @@ function requireContentPath(path) {
 test('App wires the production WebP frame manifest before video decode fallback', () => {
   assert.match(appSource, /frameManifest=["']\/frames\/web_vedio\/manifest\.json["']/)
   assert.equal(productionFrameManifest.basePath, '/frames/web_vedio')
-  assert.equal(productionFrameManifest.fps, 45)
-  assert.equal(productionFrameManifest.frameCount, 436)
+  assert.equal(productionFrameManifest.fps, 30)
+  assert.equal(productionFrameManifest.frameCount, 291)
   assert.equal(
     getFrameUrl({
       basePath: '/frames/web_vedio',
@@ -127,11 +127,21 @@ test('scroll video overlay styles cover HUD, SplitText, and quote states', () =>
 
 test('Scroll loading uses native decrypting text without adding Motion', () => {
   assert.match(scrollVideoSource, /import DecryptingText from ['"]\.\/DecryptingText['"]/)
-  assert.match(scrollVideoSource, /minimumLoadingDisplayMs/)
+  assert.match(scrollVideoSource, /const minimumLoadingDisplayMs = 1200/)
+  assert.match(scrollVideoSource, /const loadingFadeMs = 240/)
+  assert.match(scrollVideoSource, /getLoadingExitTiming/)
+  assert.match(scrollVideoSource, /loadingExiting/)
+  assert.match(scrollVideoSource, /loadingComplete/)
   assert.match(scrollVideoSource, /loadingVisible/)
+  assert.match(scrollVideoSource, /setLoadingComplete\(false\)/)
+  assert.match(scrollVideoSource, /setLoadingComplete\(true\)/)
+  assert.match(scrollVideoSource, /setLoadingExiting\(true\)/)
+  assert.match(scrollVideoSource, /if \(!loadingComplete\) \{/)
+  assert.match(scrollVideoSource, /\}, \[loadingComplete\]\)/)
   assert.match(scrollVideoSource, /<DecryptingText[\s\S]*text="SYNCING RIDE FRAMES"/)
   assert.match(scrollVideoSource, /className="scroll-video__loading-title"/)
   assert.match(scrollVideoSource, /encryptedClassName="scroll-video__loading-glyph"/)
+  assert.match(scrollVideoSource, /className=\{`scroll-video__loading\$\{loadingExiting \? ' scroll-video__loading--exiting' : ''\}`\}/)
   assert.match(decryptingTextSource, /getDecryptingTextFrame/)
   assert.match(decryptingTextSource, /prefers-reduced-motion: reduce/)
   assert.doesNotMatch(packageSource, /motion\/react|framer-motion/)
