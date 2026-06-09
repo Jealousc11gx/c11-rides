@@ -10,6 +10,76 @@ export function getFrameIndex({ progress, frameCount }) {
   return Math.min(lastFrame, Math.round(clamp(progress) * lastFrame))
 }
 
+export function getFrameLoadOrder(frameCount) {
+  const count = Math.max(0, Math.floor(frameCount))
+  const lastFrame = count - 1
+  const order = []
+  const seen = new Set()
+  const addFrame = (index) => {
+    const frameIndex = Math.min(lastFrame, Math.max(0, Math.round(index)))
+
+    if (!seen.has(frameIndex)) {
+      seen.add(frameIndex)
+      order.push(frameIndex)
+    }
+  }
+
+  if (count === 0) {
+    return order
+  }
+
+  addFrame(0)
+  addFrame(lastFrame)
+
+  for (let segments = 2; segments < count; segments *= 2) {
+    for (let step = 1; step < segments; step += 2) {
+      addFrame((lastFrame * step) / segments)
+    }
+  }
+
+  for (let index = 0; index < count; index += 1) {
+    addFrame(index)
+  }
+
+  return order
+}
+
+export function getRenderableFrame({
+  currentFrame,
+  frames,
+  previousTargetIndex,
+  targetIndex,
+}) {
+  if (!Array.isArray(frames) || frames.length === 0) {
+    return null
+  }
+
+  const index = Math.min(frames.length - 1, Math.max(0, targetIndex))
+
+  if (frames[index]) {
+    return frames[index]
+  }
+
+  if (currentFrame && previousTargetIndex === index) {
+    return currentFrame
+  }
+
+  for (let offset = 1; offset < frames.length; offset += 1) {
+    const previous = index - offset
+    const next = index + offset
+
+    if (previous >= 0 && frames[previous]) {
+      return frames[previous]
+    }
+
+    if (next < frames.length && frames[next]) {
+      return frames[next]
+    }
+  }
+
+  return null
+}
+
 export function getCueProgress({ cue, duration }) {
   const safeDuration = Math.max(0.001, duration)
   return clamp((cue.time ?? 0) / safeDuration)

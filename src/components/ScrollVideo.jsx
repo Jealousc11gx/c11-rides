@@ -4,7 +4,9 @@ import {
   getCueProgress,
   getCueState,
   getFrameIndex,
+  getFrameLoadOrder,
   getFrameUrl,
+  getRenderableFrame,
   getSampleTime,
   getScrollProgress,
 } from './scrollVideoTiming.js'
@@ -131,6 +133,8 @@ async function decodeVideoFrames({
     onFrame(frame, {
       duration: sampleDuration,
       height,
+      index,
+      frameCount,
       width,
     })
     onProgress((index + 1) / frameCount)
@@ -148,11 +152,13 @@ async function decodeVideoFrames({
 }
 
 async function preloadFrameSequence({ frameSequence, onFrame, onProgress, isCancelled }) {
-  const frames = []
+  const frames = Array.from({ length: frameSequence.frameCount }, () => null)
+  const loadOrder = getFrameLoadOrder(frameSequence.frameCount)
 
-  for (let index = 0; index < frameSequence.frameCount; index += 1) {
+  for (let loadIndex = 0; loadIndex < loadOrder.length; loadIndex += 1) {
     if (isCancelled()) break
 
+    const index = loadOrder[loadIndex]
     const image = new Image()
     image.decoding = 'async'
     image.src = getFrameUrl({
@@ -163,13 +169,15 @@ async function preloadFrameSequence({ frameSequence, onFrame, onProgress, isCanc
     })
     await image.decode()
     const frame = { image, url: null }
-    frames.push(frame)
+    frames[index] = frame
     onFrame(frame, {
       duration: frameSequence.duration,
       height: image.naturalHeight || 1,
+      index,
+      frameCount: frameSequence.frameCount,
       width: image.naturalWidth || 1,
     })
-    onProgress((index + 1) / frameSequence.frameCount)
+    onProgress((loadIndex + 1) / loadOrder.length)
   }
 
   return {
@@ -258,6 +266,7 @@ export default function ScrollVideo({
   const identityRef = useRef(null)
   const textRefs = useRef([])
   const frameRef = useRef(null)
+  const renderedFrameRef = useRef({ frame: null, targetIndex: null })
   const scrollProgressRef = useRef(0)
   const sequenceRef = useRef({ duration: 10, frames: [] })
   const [duration, setDuration] = useState(10)
@@ -276,12 +285,29 @@ export default function ScrollVideo({
       setLoadError('')
       setLoadProgress(0)
       sequenceRef.current = { duration: 10, frames: [] }
+      renderedFrameRef.current = { frame: null, targetIndex: null }
 
       const addFrame = (frame, metadata) => {
         if (frame.url) urls.push(frame.url)
+        const {
+          frameCount,
+          index,
+          ...sequenceMetadata
+        } = metadata
+        const hasFrameSlot = Number.isInteger(index) && Number.isInteger(frameCount) && frameCount > 0
+        const frames = hasFrameSlot
+          ? Array.from({ length: frameCount }, (_, frameIndex) => sequenceRef.current.frames[frameIndex] || null)
+          : [...sequenceRef.current.frames]
+
+        if (hasFrameSlot) {
+          frames[index] = frame
+        } else {
+          frames.push(frame)
+        }
+
         sequenceRef.current = {
-          ...metadata,
-          frames: [...sequenceRef.current.frames, frame],
+          ...sequenceMetadata,
+          frames,
         }
         setReady(true)
       }
@@ -394,10 +420,21 @@ export default function ScrollVideo({
           frameCount: frames.length,
           progress,
         })
-        const frame = frames[frameIndex]
+        const frame = getRenderableFrame({
+          currentFrame: renderedFrameRef.current.frame,
+          frames,
+          previousTargetIndex: renderedFrameRef.current.targetIndex,
+          targetIndex: frameIndex,
+        })
 
-        context.clearRect(0, 0, canvasWidth, canvasHeight)
-        drawCover(context, frame.image, canvasWidth, canvasHeight)
+        if (frame?.image) {
+          context.clearRect(0, 0, canvasWidth, canvasHeight)
+          drawCover(context, frame.image, canvasWidth, canvasHeight)
+          renderedFrameRef.current = {
+            frame,
+            targetIndex: frameIndex,
+          }
+        }
       }
 
       texts.forEach((text, index) => {

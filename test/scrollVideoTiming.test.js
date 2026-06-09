@@ -5,7 +5,9 @@ import {
   getCueProgress,
   getCueState,
   getFrameIndex,
+  getFrameLoadOrder,
   getFrameUrl,
+  getRenderableFrame,
   getSampleTime,
   getScrollProgress,
 } from '../src/components/scrollVideoTiming.js'
@@ -70,6 +72,66 @@ test('maps progress to a valid frame index', () => {
   assert.equal(getFrameIndex({ progress: -0.2, frameCount: 120 }), 0)
   assert.equal(getFrameIndex({ progress: 0.5, frameCount: 120 }), 60)
   assert.equal(getFrameIndex({ progress: 1.2, frameCount: 120 }), 119)
+})
+
+test('loads timeline keyframes before filling every sequential frame', () => {
+  const order = getFrameLoadOrder(581)
+
+  assert.deepEqual(order.slice(0, 9), [
+    0,
+    580,
+    290,
+    145,
+    435,
+    73,
+    218,
+    363,
+    508,
+  ])
+  assert.equal(new Set(order).size, 581)
+  assert.equal(order.length, 581)
+})
+
+test('keeps manifest frame slots stable while frames are still loading', () => {
+  const frames = Array.from({ length: 581 }, () => null)
+  frames[0] = { id: 'frame-0' }
+  frames[290] = { id: 'frame-290' }
+  frames[580] = { id: 'frame-580' }
+
+  assert.equal(getFrameIndex({ progress: 0.5, frameCount: frames.length }), 290)
+  assert.equal(getRenderableFrame({ frames, targetIndex: 290 }).id, 'frame-290')
+  assert.equal(getRenderableFrame({ frames, targetIndex: 291 }).id, 'frame-290')
+  assert.equal(getRenderableFrame({ frames, targetIndex: 579 }).id, 'frame-580')
+})
+
+test('does not advance frames just because later images finished loading', () => {
+  const frames = Array.from({ length: 581 }, () => null)
+  frames[100] = { id: 'frame-100' }
+  const currentFrame = getRenderableFrame({ frames, targetIndex: 580 })
+  const framesAfterMoreLoaded = [...frames]
+  framesAfterMoreLoaded[101] = { id: 'frame-101' }
+
+  assert.equal(currentFrame.id, 'frame-100')
+  assert.equal(
+    getRenderableFrame({
+      currentFrame,
+      frames: framesAfterMoreLoaded,
+      previousTargetIndex: 580,
+      targetIndex: 580,
+    }).id,
+    'frame-100',
+  )
+
+  framesAfterMoreLoaded[580] = { id: 'frame-580' }
+  assert.equal(
+    getRenderableFrame({
+      currentFrame,
+      frames: framesAfterMoreLoaded,
+      previousTargetIndex: 580,
+      targetIndex: 580,
+    }).id,
+    'frame-580',
+  )
 })
 
 test('builds padded frame URLs from a sequence config', () => {
