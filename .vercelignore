@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Local env
+.env
+.env.*
+!.env.example
+
+# Logs and caches
+*.log
+.DS_Store
+.vite/
+.vercel/
+.turbo/
+coverage/
+.superpowers/
+docs/superpowers/
+
+# Local frame-rate comparison assets. Keep deployment under the Hobby upload limit.
+public/frame-compare.html
+public/frames_compare/

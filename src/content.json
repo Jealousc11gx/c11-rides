@@ -1,0 +1,87 @@
+{
+  "identity": {
+    "mark": "✦",
+    "primary": "Chen Linliang",
+    "motto": [
+      "Between neurons and silicon.",
+      "Small enough to move.",
+      "Deep enough to endure."
+    ]
+  },
+  "scrollCue": ["Scroll", "to", "begin"],
+  "navItems": [
+    { "label": "Profile", "cueId": "profile" },
+    { "label": "Publications", "cueId": "publications", "speed": "6.2s" },
+    { "label": "Projects", "cueId": "projects", "speed": "5.4s" },
+    { "label": "Contact", "cueId": "links", "speed": "6s" }
+  ],
+  "sections": {
+    "profile": {
+      "markerNumber": "01",
+      "markerLabel": "/ 04 Profile",
+      "title": "Profile",
+      "role": "PhD Candidate, Beihang University",
+      "tags": ["Efficient AI", "Neuromorphic Computing"],
+      "summary": "Building efficient neural systems for edge and brain-inspired computing."
+    },
+    "publications": {
+      "markerNumber": "02",
+      "markerLabel": "/ 04 Publications",
+      "title": "Publications",
+      "items": [
+        { "number": "01", "text": "Selected Paper / Conference" },
+        { "number": "02", "text": "Preprint / Dataset" },
+        { "number": "03", "text": "BibTeX / PDF" }
+      ]
+    },
+    "projects": {
+      "markerNumber": "03",
+      "markerLabel": "/ 04 Projects",
+      "title": "Projects",
+      "items": [
+        { "label": "GitHub", "text": "code, notes, reproducible experiments" },
+        { "label": "Demo", "text": "interactive prototypes and deployed work" },
+        { "label": "Prototype", "text": "research sketches before publication" }
+      ],
+      "summary": "GitHub repositories, demos, and research prototypes stay inside the video layer."
+    },
+    "links": {
+      "markerNumber": "04",
+      "markerLabel": "/ 04 Contact",
+      "title": "Contact",
+      "quote": "Per Aspera Ad Astra",
+      "ariaLabel": "Profile links",
+      "items": [
+        {
+          "label": "GitHub",
+          "href": "https://github.com/",
+          "rel": "noreferrer",
+          "speed": "5.8s",
+          "target": "_blank"
+        },
+        {
+          "label": "Scholar",
+          "href": "https://scholar.google.com/",
+          "rel": "noreferrer",
+          "speed": "6.4s",
+          "target": "_blank"
+        },
+        {
+          "label": "Email",
+          "href": "mailto:hello@example.com",
+          "speed": "6.9s"
+        }
+      ]
+    }
+  },
+  "contactCard": {
+    "affiliation": "Beihang University",
+    "code": "L-13",
+    "email": "hello@example.com",
+    "name": "Chen Linliang",
+    "role": "PhD Candidate",
+    "strapLabel": "Chen Linliang",
+    "subtitle": "AI RESEARCH / SYSTEMS BUILDER",
+    "tags": ["Efficient AI", "Neuromorphic Computing"]
+  }
+}
