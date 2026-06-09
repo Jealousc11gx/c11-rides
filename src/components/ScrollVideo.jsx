@@ -7,6 +7,7 @@ import {
   getFrameLoadOrder,
   getFrameUrl,
   getInitialReadyFrameCount,
+  getLoadingDisplayProgress,
   getLoadingExitTiming,
   getRenderableFrame,
   getSampleTime,
@@ -413,6 +414,9 @@ export default function ScrollVideo({
     loadProgress,
     ready,
   })
+  const loadingDisplayProgress = getLoadingDisplayProgress({
+    loadProgress,
+  })
 
   useEffect(() => {
     if (!interactiveReady) {
@@ -707,7 +711,7 @@ export default function ScrollVideo({
                 <span className="scroll-video__loading-meter" aria-hidden="true">
                   <span
                     className="scroll-video__loading-progress"
-                    style={{ '--load-progress': loadProgress }}
+                    style={{ '--load-progress': loadingDisplayProgress }}
                   />
                 </span>
               </>

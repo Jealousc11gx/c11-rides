@@ -68,6 +68,14 @@ export function isFrameSequenceInteractive({
   return Boolean(ready) && clamp(loadProgress, 0, 1) >= clamp(minimumProgress, 0, 1)
 }
 
+export function getLoadingDisplayProgress({
+  loadProgress,
+  completeAt = 0.5,
+}) {
+  const threshold = Math.max(0.001, clamp(completeAt, 0, 1))
+  return clamp(loadProgress / threshold, 0, 1)
+}
+
 export function getLoadingExitTiming({
   elapsedMs,
   fadeMs,

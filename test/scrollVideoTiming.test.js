@@ -8,6 +8,7 @@ import {
   getFrameLoadOrder,
   getInitialReadyFrameCount,
   getFrameUrl,
+  getLoadingDisplayProgress,
   isFrameSequenceInteractive,
   isFrameLoadingComplete,
   getLoadingExitTiming,
@@ -141,6 +142,13 @@ test('treats frame sequence as interactive once ready frames reach the loading t
     }),
     false,
   )
+})
+
+test('maps the interactive loading threshold to a full visual meter', () => {
+  assert.equal(getLoadingDisplayProgress({ loadProgress: 0 }), 0)
+  assert.equal(getLoadingDisplayProgress({ loadProgress: 0.25 }), 0.5)
+  assert.equal(getLoadingDisplayProgress({ loadProgress: 0.5 }), 1)
+  assert.equal(getLoadingDisplayProgress({ loadProgress: 0.9 }), 1)
 })
 
 test('keeps the loading boot copy fully visible before fading out', () => {
